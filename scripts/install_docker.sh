@@ -30,14 +30,41 @@ sudo apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin d
 sudo systemctl start docker
 sudo systemctl enable docker
 
-# (Optional) Install Compose V2 manually as CLI plugin — only needed if not using the plugin package
-mkdir -p ~/.docker/cli-plugins/
-curl -SL https://github.com/docker/compose/releases/download/v2.24.5/docker-compose-linux-x86_64 -o ~/.docker/cli-plugins/docker-compose
-chmod +x ~/.docker/cli-plugins/docker-compose
 
 # Add current user to docker group 
 sudo usermod -aG docker $USER
 cd /home/ubuntu
-git clone https://github.com/BINAH25/file-server.git
-cd file-server/document_distribution
-sudo docker compose up --build -d
+# Install jq for JSON parsing
+sudo apt-get install -y jq
+# Install AWS CLI
+sudo snap install aws-cli --classic
+
+SECRET_NAME="prod/live/teaser"
+REGION="eu-west-1"
+
+# Get secret value
+SECRET_JSON=$(aws secretsmanager get-secret-value \
+    --secret-id "$SECRET_NAME" \
+    --region "$REGION" \
+    --query SecretString \
+    --output text)
+
+# Parse and export each variable
+export DB_HOST=$(echo $SECRET_JSON | jq -r '.DB_HOST')
+export DB_USER=$(echo $SECRET_JSON | jq -r '.DB_USER')
+export DB_PASS=$(echo $SECRET_JSON | jq -r '.DB_PASS')
+export DB_NAME=$(echo $SECRET_JSON | jq -r '.DB_NAME')
+
+# Optional: print to confirm
+echo "Environment variables set..."
+docker pull michaelopp/teaser
+
+docker run -d \
+  --name teaser \
+  -p 80:80 \
+  -e DB_HOST=$DB_HOST \
+  -e DB_USER=$DB_USER \
+  -e DB_PASS=$DB_PASS \
+  -e DB_NAME=$DB_NAME \
+  michaelopp/teaser
+

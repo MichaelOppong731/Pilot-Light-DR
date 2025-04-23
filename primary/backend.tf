@@ -1,8 +1,8 @@
 terraform {
   backend "s3" {
-    bucket       = "dr-project-bucket-pilot"
+    bucket       = "dr-primary-bucket-pilot-light"
     key          = "terraform.tfstate"
-    region       = "us-east-1"
+    region       = "eu-west-1"
     encrypt      = true
     use_lockfile = true
   }

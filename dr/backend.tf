@@ -1,18 +1,18 @@
 data "terraform_remote_state" "primary" {
   backend = "s3"
   config = {
-    bucket = "dr-project-bucket-pilot"
+    bucket = "dr-primary-bucket-pilot-light"
     key    = "terraform.tfstate"
-    region = "us-east-1"
+    region = "eu-west-1"
   }
 }
 
 
 terraform {
   backend "s3" {
-    bucket       = "dr-project-bucket-dr"
+    bucket       = "dr-secondary-bucket-pilot-light"
     key          = "terraform.tfstate"
-    region       = "us-west-2"
+    region       = "eu-west-1"
     encrypt      = true
     use_lockfile = true
   }
