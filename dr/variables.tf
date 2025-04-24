@@ -110,3 +110,8 @@ variable "associate_public_ip_address" {
   type    = bool
   default = true
 }
+
+variable "db_secret_name" {
+  type = string
+  
+}

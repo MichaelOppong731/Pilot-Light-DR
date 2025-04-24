@@ -1,7 +1,7 @@
 ############## SECONDARY REGION SETUP FOR DR ######################################
 
 module "vpc_dr" {
-  source                  = "../modeules/vpc"
+  source                  = "../modules/vpc"
 
   vpc_cidr                = var.vpc_cidr
   cidr_private_subnet     = var.cidr_private_subnet
@@ -12,7 +12,7 @@ module "vpc_dr" {
 }
 
 module "security_group_dr" {
-  source              = "../modeules/security_group"
+  source              = "../modules/security_group"
 
   vpc_id              = module.vpc_dr.dr_project_vpc
   ec2_sg_name         = var.ec2_sg_name
@@ -23,7 +23,7 @@ module "security_group_dr" {
 
 
 module "rds_dr" {
-  source                  = "../modeules/rds_replica"
+  source                  = "../modules/rds_replica"
 
   source_db_arn           = data.terraform_remote_state.primary.outputs.db_instance_arn
   db_identifier           = var.db_identifier
@@ -36,7 +36,7 @@ module "rds_dr" {
 
 module "alb_dr" {
 
-  source             = "../modeules/alb_dr"
+  source             = "../modules/alb_dr"
   vpc_id             = module.vpc_dr.dr_project_vpc
   alb_sg_id          = module.security_group_dr.load_security_g_name
   public_subnets     = module.vpc_dr.dr_project_public_subnets
@@ -45,7 +45,7 @@ module "alb_dr" {
 }
 
 module "acm_dr" {
-  source = "../modeules/acm_dr"
+  source = "../modules/acm_dr"
 
   domain_name        = var.domain_name
   alternative_names  = var.alternative_names
@@ -53,17 +53,21 @@ module "acm_dr" {
 
 
 module "launch_template_dr" {
-  source = "../modeules/launch_template"
+  source = "../modules/launch_template"
 
   instance_name            = var.instance_name
   key_name                 = var.key_name
   security_group_ids       = [module.security_group_dr.ec2_security_g_name]
-  user_data_install_docker = base64encode(file("../scripts/install_docker.sh"))
+  user_data_install_docker = base64encode(templatefile("${path.module}/../scripts/install_docker.sh.tpl", {
+  secret_name = var.db_secret_name
+  region      = var.region
+  })
+  )
 
 }
 
 module "autoscaling_group_dr" {
-  source = "../modeules/autoscaling_group"
+  source = "../modules/autoscaling_group"
 
   instance_name            = var.instance_name
   subnet_ids               = module.vpc_dr.dr_project_public_subnets
@@ -75,7 +79,7 @@ module "autoscaling_group_dr" {
 
 module "route53_dr" {
   
-  source = "../modeules/route53"
+  source = "../modules/route53"
   domain_name         = var.domain_name
   alb_dns_name        = module.alb_dr.alb_dns
   alb_zone_id         = module.alb_dr.alb_zone_id
@@ -86,14 +90,26 @@ module "route53_dr" {
 }
 
 module "monitoring_primary" {
-  source = "../modeules/monitoring"
+  source = "../modules/monitoring"
   health_check_id = data.terraform_remote_state.primary.outputs.health_check_id
 }
 
 
 module "lambda_failover" {
-  source = "../modeules/lambda_failover"
+  source = "../modules/lambda_failover"
   sns_topic_arn = module.monitoring_primary.sns_topic_arn
   lambda_file     = "../scripts/lambda.zip"         
   lambda_hash     = filebase64sha256("../scripts/lambda.zip")
+}
+
+module "secret_manager" {
+  source = "../modules/secrets"
+  db_secret_name = var.db_secret_name
+  db_user = var.db_username
+  db_pass = var.db_password
+  db_name = var.db_name
+  db_host = module.rds_dr.db_hostname
+
+  depends_on = [ module.rds_dr ]
+  
 }

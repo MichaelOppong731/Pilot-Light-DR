@@ -6,10 +6,8 @@ rds = boto3.client('rds')
 secretsmanager = boto3.client('secretsmanager')
 autoscaling = boto3.client('autoscaling')
 
-replica_id = "postgres-db-replica"
-asg_name = "dr-project-ec2-pilot-asg"
-secret_name = "dr-project-secret-key-us-east-1"
-
+replica_id = "todo-db-replica"
+asg_name = "todo-list-app-pilot-light-asg"
 def is_already_promoted(db_instance):
     return not db_instance.get('ReadReplicaSourceDBInstanceIdentifier')
 
@@ -40,20 +38,20 @@ def lambda_handler(event, context):
         print("Endpoint:", endpoint)
 
         # Step 2: Create/Update Secret
-        secret_payload = {
-            "username": "louis",
-            "password": "Louis123",
-            "host": endpoint,
-            "port": 5432,
-            "dbname": "file_server"
-        }
+        # secret_payload = {
+        #     "username": "louis",
+        #     "password": "Louis123",
+        #     "host": endpoint,
+        #     "port": 5432,
+        #     "dbname": "file_server"
+        # }
 
-        print("Creating or updating secret...")
-        secretsmanager.update_secret(
-            SecretId=secret_name,
-            SecretString=json.dumps(secret_payload)
-        )
-        print(f"✅ Secret '{secret_name}' updated.")
+        # print("Creating or updating secret...")
+        # secretsmanager.update_secret(
+        #     SecretId=secret_name,
+        #     SecretString=json.dumps(secret_payload)
+        # )
+        # print(f"✅ Secret '{secret_name}' updated.")
 
         # Step 3: Scale ASG
         print("Scaling ASG...")
