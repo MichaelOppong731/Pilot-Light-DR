@@ -46,18 +46,22 @@ module "acm_primary" {
 }
 
 module "ec2_primary" {
-  
-
   source = "../modules/ec2"
-  instance_name = var.instance_name
-  key_name = var.key_name
-  subnet_id = module.vpc_primary.dr_project_public_subnets[0]
-  security_group_ids = [module.security_group_primary.ec2_security_g_name]
-  associate_public_ip_address = var.associate_public_ip_address
-  user_data_install_docker = file("../scripts/install_docker.sh")
 
-  depends_on = [ module.secretsmanager_primary ]
+  instance_name               = var.instance_name
+  key_name                    = var.key_name
+  subnet_id                   = module.vpc_primary.dr_project_public_subnets[0]
+  security_group_ids          = [module.security_group_primary.ec2_security_g_name]
+  associate_public_ip_address = var.associate_public_ip_address
+
+  user_data_install_docker = templatefile("${path.module}/../scripts/install_docker.sh.tpl", {
+  secret_name = var.db_secret_name
+  region      = var.region
+  })
+
+  depends_on = [module.secretsmanager_primary]
 }
+
 
 module "alb_primary" {
   

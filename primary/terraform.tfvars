@@ -35,4 +35,4 @@ key_name      = "lampstack"
 
 # Database secret name:
 
-db_secret_name = "prod/live/teaser"
+db_secret_name = "prod/live/real2"
