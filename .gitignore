@@ -3,5 +3,5 @@ primary/.terraform/
 
 ./dr/.terraform/
 dr/.terraform/
-**/*.tfvars
+*.tfvars
 **/.terraform
