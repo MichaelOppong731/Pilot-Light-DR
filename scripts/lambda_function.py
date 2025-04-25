@@ -19,13 +19,13 @@ def lambda_handler(event, context):
         db_instance = db_info["DBInstances"][0]
 
         if is_already_promoted(db_instance):
-            print("✅ Replica is already promoted and available.")
+            print(" Replica is already promoted and available.")
         else:
             print("Promoting replica...")
             try:
                 rds.promote_read_replica(DBInstanceIdentifier=replica_id)
             except Exception as e:
-                print(f"⚠️ Promotion might already be in progress or completed: {e}")
+                print(f" Promotion might already be in progress or completed: {e}")
 
             print("⏳ Waiting for RDS promotion to complete...")
             waiter = rds.get_waiter('db_instance_available')
@@ -65,5 +65,5 @@ def lambda_handler(event, context):
         return {"status": "success", "message": "RDS promoted, secret created, ASG scaled."}
 
     except Exception as e:
-        print("❌ Error:", str(e))
+        print("Error:", str(e))
         return {"status": "error", "message": str(e)}
