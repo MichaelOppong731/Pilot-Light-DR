@@ -39,9 +39,26 @@ Failover is **automated** using the following components:
 
 This entire setup is automated using **Terraform** with a **modular approach**.
 
-### Folder Structure
+## Project Structure
 
-terraform/ ├── modules/ │ ├── vpc/ │ ├── sg/ │ ├──secrets├── ec2/ │ ├── rds/ │ ├── s3/ │ └── lambda/ ├── primary/ │ └── main.tf, variables.tf, outputs.tf ├── secondary/ │ └── main.tf, variables.tf, outputs.tf
+- terraform/
+  - modules/
+    - vpc/
+    - sg/
+    - secrets/
+    - ec2/
+    - rds/
+    - s3/
+    - lambda/
+  - primary/
+    - main.tf
+    - variables.tf
+    - outputs.tf
+  - secondary/
+    - main.tf
+    - variables.tf
+    - outputs.tf
+
 
 
 - **Modules** are reusable for both primary and secondary regions.
